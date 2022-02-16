@@ -1,6 +1,7 @@
 from aiogram import Dispatcher, Bot
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.dialects.postgresql import insert
 
 from db.models import Dialogue, Queue
 from states.dialogue import DialogueState
@@ -24,8 +25,10 @@ async def new_dialogue(dp: Dispatcher, telegram_id: int, session: AsyncSession) 
         await session.delete(queue)
 
     else:
-        queue = Queue(user=telegram_id)
-        session.add(queue)
+        stmt = insert(Queue).values(user=telegram_id)
+        stmt = stmt.on_conflict_do_nothing(
+            index_elements=[Queue.user])
+        await session.execute(stmt)
 
 
 async def notify_start_dialogue(bot: Bot, telegram_id: int) -> None:

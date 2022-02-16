@@ -55,8 +55,10 @@ def checks_subscription(func):
         if channels_without_subscription:
             await message.answer(get_need_subscribe_text(channels_without_subscription), disable_web_page_preview=True)
             await end_dialogue(dp, message.from_user.id, session)
+            await session.close()
 
         else:
+            await session.close()
             return await func(*args, **kwargs)
 
     return wrapper
